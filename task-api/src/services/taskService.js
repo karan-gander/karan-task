@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 
 let tasks = [];
 
@@ -20,7 +20,7 @@ const getStats = () => {
 
   tasks.forEach((t) => {
     if (counts[t.status] !== undefined) counts[t.status]++;
-    if (t.dueDate && t.status !== 'done' && new Date(t.dueDate) < now) {
+    if (t.dueDate && t.status !== "done" && new Date(t.dueDate) < now) {
       overdue++;
     }
   });
@@ -28,7 +28,15 @@ const getStats = () => {
   return { ...counts, overdue };
 };
 
-const create = ({ title, description = '', status = 'todo', priority = 'medium', dueDate = null }) => {
+const create = ({
+  title,
+  description = "",
+  status = "todo",
+  priority = "medium",
+  dueDate = null,
+  
+}) => {
+  // Title should be requried
   const task = {
     id: uuidv4(),
     title,
@@ -64,13 +72,42 @@ const completeTask = (id) => {
   const task = findById(id);
   if (!task) return null;
 
+  if (task.status === "done") {
+    return "Already marked done";
+  }
+
   const updated = {
     ...task,
-    priority: 'medium',
-    status: 'done',
+    // priority: 'medium', // why we are update priority
+    status: "done",
     completedAt: new Date().toISOString(),
   };
+  const index = tasks.findIndex((t) => t.id === id);
+  tasks[index] = updated;
+  return updated;
+};
 
+const assign = ({ id, body }) => {
+  console.log(body.assignee);
+  const task = findById(id);
+  if (!task) {
+    return "task does not exist";
+  }
+
+  if (
+    !body.assignee ||
+    typeof body.assignee != "string" ||
+    body.assignee.trim() === ""
+  ) {
+    return "assinee can not be empty string or undedined";
+  }
+
+  const { assignee } = body;
+
+  const updated = {
+    ...task,
+    assignee,
+  };
   const index = tasks.findIndex((t) => t.id === id);
   tasks[index] = updated;
   return updated;
@@ -91,4 +128,5 @@ module.exports = {
   remove,
   completeTask,
   _reset,
+  assign,
 };
